@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- 🌟 新增：給 LINE / FB 轉發用的預覽設定 (Open Graph) -->
+    <meta property="og:title" content="秘密祝福卡">
+    <meta property="og:description" content="宇宙每天給您的祝福，請憑直覺選擇一張卡！">
+    <meta property="og:image" content="https://card-for-secret.netlify.app/back.jpg">
+    <meta property="og:url" content="https://card-for-secret.netlify.app/">
+    <meta property="og:type" content="website">
+    
+    <!-- 網頁瀏覽器分頁上的標題 -->
+    <title>宇宙每天給您的祝福</title>
+    
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start; 
+            min-height: 100vh; 
+            font-family: "Microsoft JhengHei", sans-serif;
+            margin: 0;
+            padding: 10vh 0 5vh 0; 
+            box-sizing: border-box;
+            
+            background: linear-gradient(-45deg, #ffffff, #fdfbf4, #f5e3ad, #ffffff, #f9f4e3, #ebd494);
+            background-size: 400% 400%;
+            animation: gradientBreath 6s ease-in-out infinite; 
+        }
+
+        @keyframes gradientBreath {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        h1 {
+            color: #A67B38; 
+            font-size: 26px;
+            margin-bottom: 5px;
+            letter-spacing: 2px;
+            text-shadow: 0 1px 2px rgba(166, 123, 56, 0.15); 
+        }
+        
+        #statusText {
+            color: #8F6A2E; 
+            font-size: 16px;
+            margin-top: 0;
+            margin-bottom: 25px;
+            font-weight: bold;
+        }
+
+        .cards-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr; 
+            gap: 20px; 
+            width: 90%; 
+            max-width: 500px; 
+            margin-bottom: 30px;
+        }
+
+        .card-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .card-title {
+            color: #A67B38;
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 12px;
+            letter-spacing: 1.5px;
+            border-bottom: 2px solid #E6D09C; 
+            padding-bottom: 4px;
+        }
+
+        .card-slot {
+            width: 100%;
+            aspect-ratio: 2 / 3; 
+            perspective: 1000px;
+            cursor: pointer; 
+        }
+
+        .card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.6s cubic-bezier(0.4, 0.2, 0.2, 1);
+            transform-style: preserve-3d;
+        }
+
+        .card-inner.is-flipped {
+            transform: rotateY(180deg);
+        }
+
+        .card-slot.is-locked {
+            opacity: 0.6; 
+            cursor: not-allowed; 
+            transition: opacity 0.3s;
+        }
+
+        .card-front, .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden; 
+            border-radius: 10px;
+            box-shadow: 0 8px 20px rgba(212, 175, 55, 0.2); 
+            overflow: hidden;
+            background-color: transparent;
+        }
+
+        .card-back {
+            transform: rotateY(180deg);
+        }
+
+        .card-front img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .card-back img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            filter: brightness(1.2) contrast(1.05);
+        }
+        
+        button {
+            padding: 12px 35px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            background-color: rgba(255, 255, 255, 0.9); 
+            color: #A67B38;
+            border: 1px solid #D4AF37;
+            border-radius: 8px;
+            transition: 0.3s;
+            backdrop-filter: blur(5px); 
+            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.2);
+            letter-spacing: 2px;
+        }
+        button:hover {
+            background-color: #ffffff;
+            transform: translateY(2px); 
+            box-shadow: 0 2px 8px rgba(212, 175, 55, 0.15);
+        }
+    </style>
+</head>
+<body>
+
+    <h1>宇宙每天給您的祝福</h1>
+    <p id="statusText">請憑直覺選擇一張卡！</p>
+    
+    <div class="cards-grid">
+        <div class="card-wrapper">
+            <div class="card-title">今日祝福</div>
+            <div class="card-slot" onclick="flipCard(this)">
+                <div class="card-inner">
+                    <div class="card-front"><img src="back.jpg" alt="卡背"></div>
+                    <div class="card-back"><img class="result-img" src="" alt="抽到的卡"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card-wrapper">
+            <div class="card-title">本日練習</div>
+            <div class="card-slot" onclick="flipCard(this)">
+                <div class="card-inner">
+                    <div class="card-front"><img src="back.jpg" alt="卡背"></div>
+                    <div class="card-back"><img class="result-img" src="" alt="抽到的卡"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <button onclick="resetCards()">領取祝福</button>
+
+    <script>
+        // ==========================================
+        // 🌟 總卡牌數量 
+        const TOTAL_CARDS = 62; 
+        // ==========================================
+
+        const cards = [];
+        for (let i = 1; i <= TOTAL_CARDS; i++) {
+            cards.push("card(" + i + ").jpg");
+        }
+
+        let hasFlippedThisRound = false; 
+
+        function flipCard(clickedCard) {
+            if (hasFlippedThisRound === true) {
+                return;
+            }
+
+            const inner = clickedCard.querySelector('.card-inner');
+            const resultImage = clickedCard.querySelector('.result-img');
+            
+            const randomIndex = Math.floor(Math.random() * cards.length);
+            resultImage.src = cards[randomIndex];
+            
+            inner.classList.add('is-flipped');
+            hasFlippedThisRound = true;
+
+            document.getElementById('statusText').innerText = "點擊下方「領取祝福」重新洗牌！";
+            
+            const allSlots = document.querySelectorAll('.card-slot');
+            allSlots.forEach(slot => {
+                if (slot !== clickedCard) {
+                    slot.classList.add('is-locked');
+                }
+            });
+        }
+
+        function resetCards() {
+            const inners = document.querySelectorAll('.card-inner');
+            inners.forEach(inner => inner.classList.remove('is-flipped'));
+
+            const allSlots = document.querySelectorAll('.card-slot');
+            allSlots.forEach(slot => slot.classList.remove('is-locked'));
+
+            hasFlippedThisRound = false;
+            document.getElementById('statusText').innerText = "請憑直覺選擇一張卡！";
+        }
+    </script>
+
+</body>
+</html>
