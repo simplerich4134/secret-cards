@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     
-    <!-- 🌟 新增：給 LINE / FB 轉發用的預覽設定 (Open Graph) -->
+    <!-- 給 LINE / FB 轉發用的預覽設定 (Open Graph) -->
     <meta property="og:title" content="秘密祝福卡">
     <meta property="og:description" content="宇宙每天給您的祝福，請憑直覺選擇一張卡！">
     <meta property="og:image" content="https://card-for-secret.netlify.app/back.jpg">
@@ -26,6 +26,7 @@
             padding: 10vh 0 5vh 0; 
             box-sizing: border-box;
             
+            /* 亮白、亮米色為主底，點綴優雅的金黃光暈流動 */
             background: linear-gradient(-45deg, #ffffff, #fdfbf4, #f5e3ad, #ffffff, #f9f4e3, #ebd494);
             background-size: 400% 400%;
             animation: gradientBreath 6s ease-in-out infinite; 
@@ -131,6 +132,11 @@
             filter: brightness(1.2) contrast(1.05);
         }
         
+        .button-group {
+            display: flex;
+            gap: 20px;
+        }
+        
         button {
             padding: 12px 35px;
             font-size: 18px;
@@ -158,8 +164,8 @@
     <p id="statusText">請憑直覺選擇一張卡！</p>
     
     <div class="cards-grid">
-        <div class="card-wrapper">
-            <div class="card-title">今日祝福</div>
+        <div class="card-wrapper" data-category="宇宙祝福">
+            <div class="card-title">宇宙祝福</div>
             <div class="card-slot" onclick="flipCard(this)">
                 <div class="card-inner">
                     <div class="card-front"><img src="back.jpg" alt="卡背"></div>
@@ -168,8 +174,28 @@
             </div>
         </div>
         
-        <div class="card-wrapper">
-            <div class="card-title">本日練習</div>
+        <div class="card-wrapper" data-category="每日實踐">
+            <div class="card-title">每日實踐</div>
+            <div class="card-slot" onclick="flipCard(this)">
+                <div class="card-inner">
+                    <div class="card-front"><img src="back.jpg" alt="卡背"></div>
+                    <div class="card-back"><img class="result-img" src="" alt="抽到的卡"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card-wrapper" data-category="豐盛顯化">
+            <div class="card-title">豐盛顯化</div>
+            <div class="card-slot" onclick="flipCard(this)">
+                <div class="card-inner">
+                    <div class="card-front"><img src="back.jpg" alt="卡背"></div>
+                    <div class="card-back"><img class="result-img" src="" alt="抽到的卡"></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="card-wrapper" data-category="心靈力量">
+            <div class="card-title">心靈力量</div>
             <div class="card-slot" onclick="flipCard(this)">
                 <div class="card-inner">
                     <div class="card-front"><img src="back.jpg" alt="卡背"></div>
@@ -179,11 +205,26 @@
         </div>
     </div>
 
-    <button onclick="resetCards()">領取祝福</button>
+    <div class="button-group">
+        <button onclick="resetCards()">再翻一次</button>
+        <button onclick="window.open('https://card-for-secret.netlify.app/')">認識秘密吸引力法則</button>
+    </div>
 
     <script>
+        // 定義不同的卡牌類別與 subset
+        const dailyPracticeCardsSubset = [1, 2, 3, 4, 7, 13, 14, 16, 19, 20, 22, 24, 25, 30, 33, 35, 37, 41, 42, 43, 45, 49, 51, 53, 56, 57, 58, 59, 60, 61];
+        const abundanceCardsSubset = [2, 4, 9, 10, 13, 16, 17, 23, 25, 32, 36, 38, 46, 48];
+        const soulPowerCardsSubset = [5, 6, 8, 11, 12, 15, 16, 17, 18, 20, 21, 26, 27, 28, 29, 31, 34, 35, 39, 40, 41, 42, 44, 46, 47, 50, 52, 54, 55, 60, 61, 62];
+        
+        const allCategoryCards = {
+            "宇宙祝福": Array.from({length: 62}, (_, i) => i + 1),
+            "每日實踐": dailyPracticeCardsSubset,
+            "豐盛顯化": abundanceCardsSubset,
+            "心靈力量": soulPowerCardsSubset
+        };
+
         // ==========================================
-        // 🌟 總卡牌數量 
+        // 🌟 總卡牌數量 (未来只要改这个数字即可)
         const TOTAL_CARDS = 62; 
         // ==========================================
 
@@ -199,16 +240,21 @@
                 return;
             }
 
+            const wrapper = clickedCard.closest('.card-wrapper');
+            const category = wrapper.getAttribute('data-category');
+            const categoryCards = allCategoryCards[category];
+            
+            const randomIndex = Math.floor(Math.random() * categoryCards.length);
+            const selectedCardNumber = categoryCards[randomIndex];
+            
             const inner = clickedCard.querySelector('.card-inner');
             const resultImage = clickedCard.querySelector('.result-img');
-            
-            const randomIndex = Math.floor(Math.random() * cards.length);
-            resultImage.src = cards[randomIndex];
+            resultImage.src = "card(" + selectedCardNumber + ").jpg";
             
             inner.classList.add('is-flipped');
             hasFlippedThisRound = true;
 
-            document.getElementById('statusText').innerText = "點擊下方「領取祝福」重新洗牌！";
+            document.getElementById('statusText').innerText = "點擊下方「再翻一次」重新洗牌！";
             
             const allSlots = document.querySelectorAll('.card-slot');
             allSlots.forEach(slot => {
