@@ -2,34 +2,51 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+
     <!-- 給 LINE / FB 轉發用的預覽設定 (Open Graph) -->
     <meta property="og:title" content="秘密祝福卡">
     <meta property="og:description" content="宇宙每天給您的祝福，請憑直覺選擇一張卡！">
     <meta property="og:image" content="https://card-for-secret.netlify.app/back.jpg">
     <meta property="og:url" content="https://card-for-secret.netlify.app/">
     <meta property="og:type" content="website">
-    
+
     <!-- 網頁瀏覽器分頁上的標題 -->
     <title>宇宙每天給您的祝福</title>
-    
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;700&display=swap" rel="stylesheet">
+
     <style>
+        :root {
+            --gold: #A67B38;
+            --gold-deep: #8F6A2E;
+            --gold-line: #E6D09C;
+            --serif: "Noto Serif TC", "Songti TC", "PMingLiU", "Microsoft JhengHei", serif;
+        }
+
+        * { -webkit-tap-highlight-color: transparent; }
+
+        html, body { height: 100%; }
+
         body {
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: flex-start; 
-            min-height: 100vh; 
-            font-family: "Microsoft JhengHei", sans-serif;
+            justify-content: space-between;
+            height: 100vh;
+            height: 100dvh;
+            font-family: var(--serif);
             margin: 0;
-            padding: 10vh 0 5vh 0; 
+            padding: max(14px, env(safe-area-inset-top)) 0 max(16px, env(safe-area-inset-bottom)) 0;
             box-sizing: border-box;
-            
-            /* 亮白、亮米色為主底，點綴優雅的金黃光暈流動 */
+            overflow: hidden;
+
+            /* 亮白、亮米色為主底，點綴優雅的金黃光暈流動（呼吸燈維持原樣） */
             background: linear-gradient(-45deg, #ffffff, #fdfbf4, #f5e3ad, #ffffff, #f9f4e3, #ebd494);
             background-size: 400% 400%;
-            animation: gradientBreath 6s ease-in-out infinite; 
+            animation: gradientBreath 6s ease-in-out infinite;
         }
 
         @keyframes gradientBreath {
@@ -38,29 +55,34 @@
             100% { background-position: 0% 50%; }
         }
 
+        header { text-align: center; flex: 0 0 auto; }
+
         h1 {
-            color: #A67B38; 
-            font-size: 26px;
-            margin-bottom: 5px;
-            letter-spacing: 2px;
-            text-shadow: 0 1px 2px rgba(166, 123, 56, 0.15); 
-        }
-        
-        #statusText {
-            color: #8F6A2E; 
-            font-size: 16px;
-            margin-top: 0;
-            margin-bottom: 25px;
-            font-weight: bold;
+            color: var(--gold);
+            font-size: clamp(22px, 6.4vw, 30px);
+            font-weight: 700;
+            margin: 0 0 4px 0;
+            letter-spacing: 4px;
+            text-shadow: 0 1px 2px rgba(166, 123, 56, 0.18);
         }
 
+        #statusText {
+            color: var(--gold-deep);
+            font-size: clamp(14px, 4vw, 17px);
+            font-weight: 500;
+            letter-spacing: 3px;
+            margin: 0;
+        }
+
+        /* 卡片寬度：同時受螢幕寬度與高度限制，確保四張卡＋文字＋按鈕一頁內看完 */
         .cards-grid {
+            --cw: min(40vw, 210px, calc((100dvh - 215px) / 3));
             display: grid;
-            grid-template-columns: 1fr 1fr; 
-            gap: 20px; 
-            width: 90%; 
-            max-width: 500px; 
-            margin-bottom: 30px;
+            grid-template-columns: repeat(2, var(--cw));
+            column-gap: clamp(14px, 5vw, 28px);
+            row-gap: 10px;
+            justify-content: center;
+            flex: 0 0 auto;
         }
 
         .card-wrapper {
@@ -69,145 +91,158 @@
             align-items: center;
         }
 
-        .card-title {
-            color: #A67B38;
-            font-size: 18px;
-            font-weight: bold;
-            margin-bottom: 12px;
-            letter-spacing: 1.5px;
-            border-bottom: 2px solid #E6D09C; 
-            padding-bottom: 4px;
-        }
-
         .card-slot {
             width: 100%;
-            aspect-ratio: 2 / 3; 
-            perspective: 1000px;
-            cursor: pointer; 
+            aspect-ratio: 2 / 3;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .card-slot:active { transform: scale(0.97); }
+
+        .card-face {
+            width: 100%;
+            height: 100%;
+            border-radius: 10px;
+            box-shadow: 0 8px 20px rgba(212, 175, 55, 0.25);
+            overflow: hidden;
+        }
+        .card-face img {
+            display: block;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
 
-        .card-inner {
+        /* 分類文字：在卡牌之下 */
+        .card-title {
+            color: var(--gold);
+            font-size: clamp(15px, 4.4vw, 19px);
+            font-weight: 700;
+            letter-spacing: 3px;
+            margin-top: 8px;
+            padding-bottom: 3px;
+            border-bottom: 2px solid var(--gold-line);
+        }
+
+        /* 下方唯一的膠囊 */
+        .pill {
+            flex: 0 0 auto;
+            font-family: var(--serif);
+            padding: 11px 34px;
+            font-size: clamp(15px, 4.4vw, 18px);
+            font-weight: 700;
+            letter-spacing: 3px;
+            cursor: pointer;
+            background: linear-gradient(180deg, rgba(255,255,255,0.97), rgba(253,247,229,0.92));
+            color: var(--gold);
+            border: 1px solid #D4AF37;
+            border-radius: 999px;
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.25);
+            transition: 0.3s;
+            white-space: nowrap;
+        }
+        .pill:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 8px rgba(212, 175, 55, 0.15);
+        }
+
+        /* ===== 抽牌後放大的大畫面 ===== */
+        #overlay {
+            position: fixed;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 22px;
+            padding: max(14px, env(safe-area-inset-top)) 0 max(18px, env(safe-area-inset-bottom)) 0;
+            box-sizing: border-box;
+            background: rgba(253, 251, 244, 0.93);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.35s;
+            z-index: 10;
+        }
+        #overlay.show { opacity: 1; pointer-events: auto; }
+
+        .big-slot {
+            --bw: min(86vw, 460px, calc((100dvh - 150px) * 2 / 3));
+            width: var(--bw);
+            aspect-ratio: 2 / 3;
+            perspective: 1400px;
+        }
+        .big-inner {
             position: relative;
             width: 100%;
             height: 100%;
-            transition: transform 0.6s cubic-bezier(0.4, 0.2, 0.2, 1);
             transform-style: preserve-3d;
+            transform: scale(0.7) rotateY(0deg);
+            transition: transform 0.8s cubic-bezier(0.3, 0.2, 0.2, 1);
         }
+        #overlay.show .big-inner { transform: scale(1) rotateY(180deg); }
 
-        .card-inner.is-flipped {
-            transform: rotateY(180deg);
-        }
-
-        .card-slot.is-locked {
-            opacity: 0.6; 
-            cursor: not-allowed; 
-            transition: opacity 0.3s;
-        }
-
-        .card-front, .card-back {
+        .big-front, .big-back {
             position: absolute;
-            width: 100%;
-            height: 100%;
-            backface-visibility: hidden; 
-            border-radius: 10px;
-            box-shadow: 0 8px 20px rgba(212, 175, 55, 0.2); 
+            inset: 0;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            border-radius: 14px;
             overflow: hidden;
-            background-color: transparent;
+            box-shadow: 0 14px 40px rgba(166, 123, 56, 0.35);
         }
-
-        .card-back {
-            transform: rotateY(180deg);
-        }
-
-        .card-front img {
+        .big-back { transform: rotateY(180deg); }
+        .big-front img, .big-back img {
+            display: block;
             width: 100%;
             height: 100%;
             object-fit: cover;
-        }
-
-        .card-back img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            filter: brightness(1.2) contrast(1.05);
-        }
-        
-        .button-group {
-            display: flex;
-            gap: 20px;
-        }
-        
-        button {
-            padding: 12px 35px;
-            font-size: 18px;
-            font-weight: bold;
-            cursor: pointer;
-            background-color: rgba(255, 255, 255, 0.9); 
-            color: #A67B38;
-            border: 1px solid #D4AF37;
-            border-radius: 8px;
-            transition: 0.3s;
-            backdrop-filter: blur(5px); 
-            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.2);
-            letter-spacing: 2px;
-        }
-        button:hover {
-            background-color: #ffffff;
-            transform: translateY(2px); 
-            box-shadow: 0 2px 8px rgba(212, 175, 55, 0.15);
         }
     </style>
 </head>
 <body>
 
-    <h1>宇宙每天給您的祝福</h1>
-    <p id="statusText">請憑直覺選擇一張卡！</p>
-    
+    <header>
+        <h1>宇宙每天給您的祝福</h1>
+        <p id="statusText">請憑直覺選擇一張卡！</p>
+    </header>
+
     <div class="cards-grid">
         <div class="card-wrapper" data-category="宇宙祝福">
+            <div class="card-slot" onclick="drawCard(this)"><div class="card-face"><img src="back.jpg" alt="宇宙祝福"></div></div>
             <div class="card-title">宇宙祝福</div>
-            <div class="card-slot" onclick="flipCard(this)">
-                <div class="card-inner">
-                    <div class="card-front"><img src="back.jpg" alt="卡背"></div>
-                    <div class="card-back"><img class="result-img" src="" alt="抽到的卡"></div>
-                </div>
-            </div>
         </div>
-        
+
         <div class="card-wrapper" data-category="每日實踐">
+            <div class="card-slot" onclick="drawCard(this)"><div class="card-face"><img src="back.jpg" alt="每日實踐"></div></div>
             <div class="card-title">每日實踐</div>
-            <div class="card-slot" onclick="flipCard(this)">
-                <div class="card-inner">
-                    <div class="card-front"><img src="back.jpg" alt="卡背"></div>
-                    <div class="card-back"><img class="result-img" src="" alt="抽到的卡"></div>
-                </div>
-            </div>
         </div>
-        
+
         <div class="card-wrapper" data-category="豐盛顯化">
+            <div class="card-slot" onclick="drawCard(this)"><div class="card-face"><img src="back.jpg" alt="豐盛顯化"></div></div>
             <div class="card-title">豐盛顯化</div>
-            <div class="card-slot" onclick="flipCard(this)">
-                <div class="card-inner">
-                    <div class="card-front"><img src="back.jpg" alt="卡背"></div>
-                    <div class="card-back"><img class="result-img" src="" alt="抽到的卡"></div>
-                </div>
-            </div>
         </div>
-        
+
         <div class="card-wrapper" data-category="心靈力量">
+            <div class="card-slot" onclick="drawCard(this)"><div class="card-face"><img src="back.jpg" alt="心靈力量"></div></div>
             <div class="card-title">心靈力量</div>
-            <div class="card-slot" onclick="flipCard(this)">
-                <div class="card-inner">
-                    <div class="card-front"><img src="back.jpg" alt="卡背"></div>
-                    <div class="card-back"><img class="result-img" src="" alt="抽到的卡"></div>
-                </div>
-            </div>
         </div>
     </div>
 
-    <div class="button-group">
-        <button onclick="resetCards()">再翻一次</button>
-        <button onclick="window.open('https://card-for-secret.netlify.app/')">認識秘密吸引力法則</button>
+    <button class="pill" onclick="window.open('https://card-for-secret.netlify.app/')">吸引力法則起源</button>
+
+    <!-- 抽牌後的大畫面：上方卡片、下方「再翻一次」 -->
+    <div id="overlay">
+        <div class="big-slot">
+            <div class="big-inner">
+                <div class="big-front"><img src="back.jpg" alt="卡背"></div>
+                <div class="big-back"><img id="bigResult" src="" alt="抽到的卡"></div>
+            </div>
+        </div>
+        <button class="pill" onclick="closeCard()">再翻一次</button>
     </div>
 
     <script>
@@ -215,7 +250,7 @@
         const dailyPracticeCardsSubset = [1, 2, 3, 4, 7, 13, 14, 16, 19, 20, 22, 24, 25, 30, 33, 35, 37, 41, 42, 43, 45, 49, 51, 53, 56, 57, 58, 59, 60, 61];
         const abundanceCardsSubset = [2, 4, 9, 10, 13, 16, 17, 23, 25, 32, 36, 38, 46, 48];
         const soulPowerCardsSubset = [5, 6, 8, 11, 12, 15, 16, 17, 18, 20, 21, 26, 27, 28, 29, 31, 34, 35, 39, 40, 41, 42, 44, 46, 47, 50, 52, 54, 55, 60, 61, 62];
-        
+
         const allCategoryCards = {
             "宇宙祝福": Array.from({length: 62}, (_, i) => i + 1),
             "每日實踐": dailyPracticeCardsSubset,
@@ -223,56 +258,26 @@
             "心靈力量": soulPowerCardsSubset
         };
 
-        // ==========================================
-        // 🌟 總卡牌數量 (未来只要改这个数字即可)
-        const TOTAL_CARDS = 62; 
-        // ==========================================
+        const overlay = document.getElementById('overlay');
+        const bigResult = document.getElementById('bigResult');
 
-        const cards = [];
-        for (let i = 1; i <= TOTAL_CARDS; i++) {
-            cards.push("card(" + i + ").jpg");
-        }
+        function drawCard(slot) {
+            if (overlay.classList.contains('show')) return;
 
-        let hasFlippedThisRound = false; 
-
-        function flipCard(clickedCard) {
-            if (hasFlippedThisRound === true) {
-                return;
-            }
-
-            const wrapper = clickedCard.closest('.card-wrapper');
-            const category = wrapper.getAttribute('data-category');
+            const category = slot.closest('.card-wrapper').getAttribute('data-category');
             const categoryCards = allCategoryCards[category];
-            
-            const randomIndex = Math.floor(Math.random() * categoryCards.length);
-            const selectedCardNumber = categoryCards[randomIndex];
-            
-            const inner = clickedCard.querySelector('.card-inner');
-            const resultImage = clickedCard.querySelector('.result-img');
-            resultImage.src = "card(" + selectedCardNumber + ").jpg";
-            
-            inner.classList.add('is-flipped');
-            hasFlippedThisRound = true;
+            const selectedCardNumber = categoryCards[Math.floor(Math.random() * categoryCards.length)];
 
-            document.getElementById('statusText').innerText = "點擊下方「再翻一次」重新洗牌！";
-            
-            const allSlots = document.querySelectorAll('.card-slot');
-            allSlots.forEach(slot => {
-                if (slot !== clickedCard) {
-                    slot.classList.add('is-locked');
-                }
-            });
+            const src = "card(" + selectedCardNumber + ").jpg";
+            // 圖片載入完成後才翻牌，避免翻到一半還是空白
+            bigResult.onload = bigResult.onerror = function () {
+                requestAnimationFrame(function () { overlay.classList.add('show'); });
+            };
+            bigResult.src = src;
         }
 
-        function resetCards() {
-            const inners = document.querySelectorAll('.card-inner');
-            inners.forEach(inner => inner.classList.remove('is-flipped'));
-
-            const allSlots = document.querySelectorAll('.card-slot');
-            allSlots.forEach(slot => slot.classList.remove('is-locked'));
-
-            hasFlippedThisRound = false;
-            document.getElementById('statusText').innerText = "請憑直覺選擇一張卡！";
+        function closeCard() {
+            overlay.classList.remove('show');
         }
     </script>
 
