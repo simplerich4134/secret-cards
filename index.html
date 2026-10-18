@@ -70,10 +70,11 @@
 
         #statusText {
             color: var(--gold-deep);
-            font-size: 15px;
-            font-size: min(4vw, 17px);
+            font-size: 14px;
+            font-size: min(3.7vw, 16px);
             font-weight: 500;
-            letter-spacing: 0.2em;
+            letter-spacing: 0.08em;
+            line-height: 1.6;
             white-space: nowrap;
             margin: 0;
         }
@@ -205,7 +206,7 @@
             0%, 100% { box-shadow: 0 14px 40px rgba(166, 123, 56, 0.35); }
             50% { box-shadow: 0 14px 40px rgba(166, 123, 56, 0.35), 0 0 34px rgba(255, 210, 110, 0.9); }
         }
-        #overlay.open:not(.show) .pill { visibility: hidden; }
+        #overlay.open:not(.show) #streakBox { visibility: hidden; }
 
         .big-slot {
             --bw: 300px; /* 由下方程式依視窗大小計算 */
@@ -370,18 +371,47 @@
             100% { transform: translate(var(--dx), calc(var(--vh, 100vh) * -1 - 20px)); opacity: 0; }
         }
 
-        /* 效果 6：抽到的卡上方顯示分類 */
+        /* 效果 6：抽到的卡上方顯示文字 */
         #bigLabel {
             display: none;
             color: var(--gold);
-            font-size: 17px;
+            font-size: 16px;
+            font-size: min(4.2vw, 18px);
             font-weight: 700;
-            letter-spacing: 0.3em;
+            letter-spacing: 0.12em;
             white-space: nowrap;
             padding-bottom: 4px;
             border-bottom: 2px solid var(--gold-line);
         }
         .fx6 #bigLabel { display: block; }
+
+        /* 連續抽卡天數（取代原本的「再翻一次」） */
+        #streakBox {
+            text-align: center;
+            padding: 10px 22px;
+            background: linear-gradient(180deg, rgba(255,255,255,0.97), rgba(253,247,229,0.92));
+            border: 1px solid #D4AF37;
+            border-radius: 18px;
+            box-shadow: 0 4px 15px rgba(212, 175, 55, 0.25);
+            color: var(--gold);
+            position: relative;
+            z-index: 1;
+        }
+        .streak-main {
+            font-size: 17px;
+            font-weight: 700;
+            letter-spacing: 0.12em;
+            white-space: nowrap;
+        }
+        .streak-main b { font-size: 1.35em; color: var(--gold-deep); margin: 0 2px; }
+        .streak-sub {
+            margin-top: 4px;
+            font-size: 13px;
+            font-size: min(3.4vw, 14px);
+            color: var(--gold-deep);
+            letter-spacing: 0.04em;
+            white-space: nowrap;
+        }
 
         /* 測試用：效果開關面板（網址加 ?test 才會出現） */
         #fxPanel {
@@ -408,8 +438,8 @@
     <div id="dust"></div>
 
     <header>
-        <h1>宇宙每天給您的祝福</h1>
-        <p id="statusText">請憑直覺選擇一張卡！</p>
+        <h1>每天抽一張專屬心念卡</h1>
+        <p id="statusText">讓正向信念成為您最強大的財富後盾！</p>
     </header>
 
     <div class="cards-grid">
@@ -439,8 +469,8 @@
     <!-- 「建構中」提示 -->
     <div id="toast">建構中，敬請期待</div>
 
-    <!-- 抽牌後的大畫面：上方卡片、下方「再翻一次」 -->
-    <div id="overlay">
+    <!-- 抽牌後的大畫面：上方文字、中間卡片、下方連續抽卡天數；點畫面任何地方回首頁 -->
+    <div id="overlay" onclick="closeCard()">
         <div id="bigLabel"></div>
         <div class="big-slot">
             <div class="sun">
@@ -453,7 +483,10 @@
                 <div class="big-back"><img id="bigResult" src="" alt="抽到的卡"></div>
             </div>
         </div>
-        <button class="pill" onclick="closeCard()">再翻一次</button>
+        <div id="streakBox">
+            <div class="streak-main">您已連續抽卡 <b id="streakDays">1</b> 天</div>
+            <div class="streak-sub">記得明天再來抽取，持續校準您的財富頻率喔！</div>
+        </div>
     </div>
 
     <script>
@@ -491,8 +524,8 @@
             cw = Math.max(cw, 80);
             grid.style.setProperty('--cw', Math.floor(cw) + 'px');
 
-            // 大畫面：卡片儘量大，上方留給分類字、下方留給「再翻一次」
-            const bigPillH = overlay.querySelector('.pill').offsetHeight;
+            // 大畫面：卡片儘量大，上方留給文字、下方留給連續抽卡天數
+            const bigPillH = document.getElementById('streakBox').offsetHeight;
             const labelH = document.getElementById('bigLabel').offsetHeight;
             const labelGap = labelH ? labelH + 22 : 0;
             let bw = Math.min(W * 0.86, 460, (H - bigPillH - labelGap - 22 - 40) * 2 / 3);
@@ -522,22 +555,44 @@
             const img = nextCard[category];
             prepareNext(category); // 立刻替這個分類準備下一張
 
-            document.getElementById('bigLabel').textContent = category + "・今日指引";
+            document.getElementById('bigLabel').textContent = "這張卡片是今天 宇宙給您的能量祝福指引";
+            updateStreak();
             fitLayout();
 
             // 一按就先放大顯示卡背（有光暈閃動表示正在翻），圖片好了再翻開
             overlay.classList.add('open');
             function reveal() {
                 bigResult.src = img.src;
-                requestAnimationFrame(function () {
-                    requestAnimationFrame(function () { overlay.classList.add('show'); });
-                });
+                // 用計時器而不是畫面更新訊號，部分手機 App 內建瀏覽器會暫停後者，造成卡片不翻開
+                setTimeout(function () {
+                    if (overlay.classList.contains('open')) overlay.classList.add('show');
+                }, 40);
             }
             if (img.complete) {
                 reveal();
             } else {
                 img.onload = img.onerror = reveal;
             }
+        }
+
+        // 連續抽卡天數：同一天抽多次只算一天；隔天再來 +1；中斷超過一天重新從 1 開始
+        // 資料只存在使用者自己的瀏覽器（localStorage），無痕模式或清除資料時會重新計算
+        function dayKey(d) {
+            return d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate();
+        }
+        function updateStreak() {
+            const today = new Date();
+            const yest = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 1);
+            let streak = 1;
+            try {
+                const last = localStorage.getItem('secretCardLastDay');
+                const saved = parseInt(localStorage.getItem('secretCardStreak'), 10) || 0;
+                if (last === dayKey(today)) streak = Math.max(saved, 1);
+                else if (last === dayKey(yest)) streak = saved + 1;
+                localStorage.setItem('secretCardLastDay', dayKey(today));
+                localStorage.setItem('secretCardStreak', String(streak));
+            } catch (e) { /* 瀏覽器不允許儲存時，顯示 1 天 */ }
+            document.getElementById('streakDays').textContent = streak;
         }
 
         let toastTimer = null;
@@ -549,6 +604,7 @@
         }
 
         function closeCard() {
+            if (!overlay.classList.contains('show')) return; // 卡片還沒翻開前，點擊不關閉
             overlay.classList.remove('show', 'open');
             // 等淡出動畫結束才允許再抽，避免畫面跳動
             setTimeout(function () { drawing = false; }, 350);
@@ -594,7 +650,7 @@
 
         // 測試用：網址加 ?test 會出現效果開關面板，可逐項關閉看差別
         if (location.search.indexOf('test') !== -1) {
-            const names = ['1 卡片浮動', '2 金色光暈', '3 翻牌金光', '4 標題燙金', '5 漂浮金粉', '6 抽卡顯示分類'];
+            const names = ['1 卡片浮動', '2 金色光暈', '3 翻牌金光', '4 標題燙金', '5 漂浮金粉', '6 卡片上方文字'];
             const panel = document.createElement('details');
             panel.id = 'fxPanel';
             panel.open = false; // 預設收合，點「效果開關」才展開，避免擋住標題
